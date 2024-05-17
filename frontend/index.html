@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tally Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .person-container {
+            background-color: #e6f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 300px;
+        }
+        .tally-controls {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+        .tally-controls span {
+            margin: 0 10px;
+            font-size: 18px;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+        .income {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <h1>Tally Tracker</h1>
+        <img src="ISK.jpeg"/>
+        <div id="tallies"></div>
+        <div class="income">
+            <h2>Total Income: <span id="total-income">0</span> tk</h2>
+        </div>
+    </div>
+
+    <script>
+        const fetchTallies = async () => {
+            const response = await fetch('/api/tally');
+            const tallies = await response.json();
+            return tallies;
+        };
+
+        const updateTally = async (name, count) => {
+            await fetch('/api/tally', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, count })
+            });
+        };
+
+        const calculateTotalIncome = (tallies) => {
+            return tallies.reduce((total, tally) => total + tally.income, 0);
+        };
+
+        const renderTallies = (tallies) => {
+            const talliesContainer = document.getElementById('tallies');
+            talliesContainer.innerHTML = '';
+
+            tallies.forEach(tally => {
+                const tallyDiv = document.createElement('div');
+                tallyDiv.className = 'person-container';
+                tallyDiv.innerHTML = `
+                    <div class="tally-info">
+                        <span>${tally.name}: ${tally.count} (Income: ${tally.income.toFixed(2)} tk)</span>
+                    </div>
+                    <div class="tally-controls">
+                        <button onclick="changeCount('${tally.name}', -1)">-</button>
+                        <span>${tally.count}</span>
+                        <button onclick="changeCount('${tally.name}', 1)">+</button>
+                    </div>
+                `;
+                talliesContainer.appendChild(tallyDiv);
+            });
+
+            const totalIncome = calculateTotalIncome(tallies);
+            document.getElementById('total-income').textContent = totalIncome.toFixed(2);
+        };
+
+        const changeCount = async (name, delta) => {
+            const tallies = await fetchTallies();
+            const tally = tallies.find(t => t.name === name);
+            if (tally) {
+                tally.count += delta;
+                tally.income = tally.count * tally.rate;
+                await updateTally(name, tally.count);
+                renderTallies(tallies);
+            }
+        };
+
+        window.onload = async () => {
+            const tallies = await fetchTallies();
+            renderTallies(tallies);
+        };
+    </script>
+</body>
+</html>

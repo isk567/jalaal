@@ -1,0 +1,20 @@
+[
+  {
+    "name": "ISK",
+    "count": 25,
+    "rate": 10,
+    "income": 250
+  },
+  {
+    "name": "GANIM",
+    "count": 6,
+    "rate": 10,
+    "income": 60
+  },
+  {
+    "name": "RAFSAN",
+    "count": 4,
+    "rate": 9.5,
+    "income": 38
+  }
+]
